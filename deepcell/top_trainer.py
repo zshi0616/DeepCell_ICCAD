@@ -30,14 +30,8 @@ class TopTrainer():
         self.lr_step = args.lr_step
         self.loss_weight = loss_weight
         training_id = args.exp_id
-        if not os.path.exists(args.save_dir):
-            os.makedirs(args.save_dir)
-        self.log_dir = os.path.join(args.save_dir, training_id)
-        if not os.path.exists(self.log_dir):
-            os.makedirs(self.log_dir)
         # Log Path
         time_str = time.strftime('%Y-%m-%d-%H-%M')
-        self.log_path = os.path.join(self.log_dir, 'log-{}.txt'.format(time_str))
         
         self.batch_size = args.batch_size
         self.num_workers = args.num_workers
@@ -71,6 +65,12 @@ class TopTrainer():
         
         # Logger
         if self.local_rank == 0:
+            if not os.path.exists(args.save_dir):
+                os.makedirs(args.save_dir)
+            self.log_dir = os.path.join(args.save_dir, training_id)
+            if not os.path.exists(self.log_dir):
+                os.makedirs(self.log_dir)
+            self.log_path = os.path.join(self.log_dir, 'log-{}.txt'.format(time_str))
             self.logger = Logger(self.log_path)
             self.logger.write(str(vars(self.args)))
             print('[INFO] Create log file: {}'.format(self.log_path))
@@ -186,6 +186,12 @@ class TopTrainer():
                     torch.cuda.empty_cache()
                 if self.local_rank == 0:
                     bar = Bar('{} {:}/{:}'.format(phase, epoch, num_epoch), max=len(dataset))
+                
+                prob_loss_stats.reset()
+                mcm_loss_stats.reset()
+                watch_loss_stats.reset()
+                batch_time.reset()
+                
                 for iter_id, batch in enumerate(dataset):
                     batch = batch.to(self.device)
                     time_stamp = time.time()

@@ -53,7 +53,7 @@ class DirectMultiGCNEncoder(nn.Module):
     def __init__(self, 
                  dim_feature = 3, 
                  dim_hidden = 128, 
-                 s_rounds = 1, 
+                 s_rounds = 4, 
                  t_rounds = 1, 
                  enable_reverse = True,
                  layernorm = False 

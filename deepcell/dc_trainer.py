@@ -183,7 +183,6 @@ class Trainer():
         # AverageMeter
         batch_time = AverageMeter()
         prob_loss_stats, func_loss_stats, con_loss_stats = AverageMeter(), AverageMeter(), AverageMeter()
-        acc_stats = AverageMeter()
         
         # Train
         print('[INFO] Start training, lr = {:.4f}'.format(self.optimizer.param_groups[0]['lr']))
@@ -200,6 +199,10 @@ class Trainer():
                     torch.cuda.empty_cache()
                 if self.local_rank == 0:
                     bar = Bar('{} {:}/{:}'.format(phase, epoch, num_epoch), max=len(dataset))
+                prob_loss_stats.reset()
+                func_loss_stats.reset()
+                con_loss_stats.reset()
+                batch_time.reset()
                 for iter_id, batch in enumerate(dataset):
                     batch = batch.to(self.device)
                     time_stamp = time.time()

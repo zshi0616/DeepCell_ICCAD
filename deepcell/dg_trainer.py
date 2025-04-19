@@ -208,6 +208,11 @@ class Trainer():
                     torch.cuda.empty_cache()
                 if self.local_rank == 0:
                     bar = Bar('{} {:}/{:}'.format(phase, epoch, num_epoch), max=len(dataset))
+                
+                prob_loss_stats.reset()
+                func_loss_stats.reset()
+                con_loss_stats.reset()
+                batch_time.reset()
                 for iter_id, batch in enumerate(dataset):
                     batch = batch.to(self.device)
                     time_stamp = time.time()
