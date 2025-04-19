@@ -24,7 +24,7 @@ class Model(nn.Module):
                  dim_hidden = 128, 
                  enable_encode = True,
                  enable_reverse = False, 
-                 aggr='dg'
+                 aggr='dg2'
                 ):
         super(Model, self).__init__()
         
@@ -43,7 +43,7 @@ class Model(nn.Module):
         # self.aggr_not_strc = TFMlpAggr(self.dim_hidden*1, self.dim_hidden)
         # self.aggr_and_func = TFMlpAggr(self.dim_hidden*2, self.dim_hidden)
         # self.aggr_not_func = TFMlpAggr(self.dim_hidden*1, self.dim_hidden)
-        if self.aggr == 'dg':
+        if self.aggr == 'dg2':
             self.aggr_cell_strc = TFMlpAggr(self.dim_hidden*1, self.dim_hidden)
             self.aggr_cell_func = TFMlpAggr(self.dim_hidden*2, self.dim_hidden)
         elif self.aggr == 'gcn':

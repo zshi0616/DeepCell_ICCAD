@@ -125,20 +125,23 @@ class TopTrainer():
             raise ValueError('No model to resume')
         
     def run_batch(self, batch):
-        mask_indices, mcm_tokens, gt_tokens, prob = self.model(batch)
+        mask_indices, mcm_tokens, gt_tokens, prob, watch_prob = self.model(batch)
         
         # Task 1: Probability Prediction 
         if self.args.refine == 'aig':
             prob_loss = self.reg_loss(prob[batch.aig_gate == 1], batch['aig_prob'].unsqueeze(1)[batch.aig_gate == 1])
+            watch_prob_loss = self.reg_loss(watch_prob, batch['prob'].unsqueeze(1))
         else:
             prob_loss = self.reg_loss(prob, batch['prob'].unsqueeze(1))
+            watch_prob_loss = self.reg_loss(watch_prob[batch.aig_gate == 1], batch['aig_prob'].unsqueeze(1)[batch.aig_gate == 1])
             
         # Task 2: Mask PM Circuit Modeling  
         mcm_loss = self.reg_loss(mcm_tokens[mask_indices], gt_tokens[mask_indices])
         
         loss_status = {
             'prob_loss': prob_loss,
-            'mcm_loss': mcm_loss
+            'mcm_loss': mcm_loss, 
+            'watch': watch_prob_loss
         }
         return loss_status
     
@@ -166,6 +169,7 @@ class TopTrainer():
         # AverageMeter
         batch_time = AverageMeter()
         prob_loss_stats, mcm_loss_stats = AverageMeter(), AverageMeter()
+        watch_loss_stats = AverageMeter()
         
         # Train
         print('[INFO] Start training, lr = {:.4f}'.format(self.optimizer.param_groups[0]['lr']))
@@ -187,12 +191,11 @@ class TopTrainer():
                     time_stamp = time.time()
                     # Get loss
                     loss_status = self.run_batch(batch)
-
                     loss = loss_status['prob_loss'] * self.loss_weight[0] + \
                         loss_status['mcm_loss'] * self.loss_weight[1]
-                    
                     loss /= sum(self.loss_weight)
                     loss = loss.mean()
+                    
                     if phase == 'train':
                         self.optimizer.zero_grad()
                         loss.backward()
@@ -201,9 +204,10 @@ class TopTrainer():
                     batch_time.update(time.time() - time_stamp)
                     prob_loss_stats.update(loss_status['prob_loss'].item() * self.loss_weight[0])
                     mcm_loss_stats.update(loss_status['mcm_loss'].item() * self.loss_weight[1])
+                    watch_loss_stats.update(loss_status['watch'].item())
                     if self.local_rank == 0:
-                        Bar.suffix = '[{:}/{:}]|Tot: {total:} |ETA: {eta:} '.format(iter_id, len(dataset), total=bar.elapsed_td, eta=bar.eta_td)
-                        Bar.suffix += '|MCM: {:.4f} |Prob: {:.4f} '.format(mcm_loss_stats.avg, prob_loss_stats.avg)
+                        Bar.suffix = '[{:}/{:}] [{}] |Tot: {total:} |ETA: {eta:} '.format(iter_id, len(dataset), self.args.refine, total=bar.elapsed_td, eta=bar.eta_td)
+                        Bar.suffix += '|MCM: {:.4f} |Prob: {:.4f} |Watch: {:.4f} '.format(mcm_loss_stats.avg, prob_loss_stats.avg, watch_loss_stats.avg)
                         Bar.suffix += '|Net: {:.2f}s '.format(batch_time.avg)
                         bar.next()
                 if phase == 'train':

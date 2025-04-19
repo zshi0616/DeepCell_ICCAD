@@ -18,6 +18,7 @@ from .dc_model import Model as DeepCell
 from .dg_model import Model as DeepGate
 from .dg3_model import Model as DeepGate3
 from .pg_model import PolarGate
+from .gcn_model import DirectMultiGCNEncoder as GCN
 
 class TopModel(nn.Module):
     def __init__(self, 
@@ -36,10 +37,12 @@ class TopModel(nn.Module):
         # DeepGate 
         if args.aig_encoder == 'pg':
             self.aig_encoder = PolarGate(args, in_dim=3, out_dim=args.dim_hidden)
-        elif args.aig_encoder == 'dg':
+        elif args.aig_encoder == 'dg2':
             self.aig_encoder = DeepGate(dim_hidden=args.dim_hidden)
         elif args.aig_encoder == 'dg3':
             self.aig_encoder = DeepGate3(dim_hidden=args.dim_hidden)
+        elif args.aig_encoder == 'gcn':
+            self.aig_encoder = GCN(dim_feature=3, dim_hidden=args.dim_hidden)
         self.aig_encoder.load(aig_ckpt)
         
         # Transformer
@@ -124,9 +127,11 @@ class TopModel(nn.Module):
         if self.args.refine == 'aig':
             gt_tokens = aig_tokens.detach()
             hf = aig_hf.clone()
+            watch_hf = pm_hf.clone()
         else:
             gt_tokens = pm_tokens.detach()
             hf = pm_hf.clone()
+            watch_hf = aig_hf.clone()
             
         mcm_pm_tokens = torch.zeros(0, self.args.dim_hidden * 2).to(self.device)
         mcm_aig_tokens = torch.zeros(0, self.args.dim_hidden * 2).to(self.device)
@@ -167,12 +172,14 @@ class TopModel(nn.Module):
         if self.args.refine == 'aig':
             mcm_tokens = mcm_aig_tokens
             prob = self.aig_encoder.pred_prob(hf)
+            watch_prob = self.pm_encoder.pred_prob(watch_hf)
         else:
             mcm_tokens = mcm_pm_tokens
             prob = self.pm_encoder.pred_prob(hf)
+            watch_prob = self.aig_encoder.pred_prob(watch_hf)
             
         
-        return mask_indices, mcm_tokens, gt_tokens, prob
+        return mask_indices, mcm_tokens, gt_tokens, prob, watch_prob
         
    
     def load(self, model_path):

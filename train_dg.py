@@ -24,7 +24,7 @@ if __name__ == '__main__':
     print('[INFO] Create Model and Trainer')
     if args.aig_encoder == 'pg':
         model = PolarGate(args, in_dim=3, out_dim=args.dim_hidden)
-    elif args.aig_encoder == 'dg':
+    elif args.aig_encoder == 'dg2':
         model = DeepGate(dim_hidden=args.dim_hidden)
     elif args.aig_encoder == 'dg3':
         model = DeepGate3(dim_hidden=args.dim_hidden)

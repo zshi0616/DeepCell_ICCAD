@@ -21,8 +21,8 @@ def get_parse_args():
     parser.add_argument('--wo_view', action='store_true', default=False)
     
     # GNN
-    parser.add_argument('--pm_aggr', default='dg', choices=['dg', 'gat', 'gcn'],)
-    parser.add_argument('--aig_encoder', default='dg', choices=['dg', 'pg', 'dg3', 'gcn'])
+    parser.add_argument('--pm_aggr', default='dg2', choices=['dg2', 'gat', 'gcn'],)
+    parser.add_argument('--aig_encoder', default='dg2', choices=['dg2', 'pg', 'dg3', 'gcn'])
 
     # system
     parser.add_argument('--gpus', default='-1', 

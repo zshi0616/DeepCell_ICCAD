@@ -25,8 +25,8 @@ if __name__ == '__main__':
     print('[INFO] Create Model and Trainer')
     model = deepcell.top_model.TopModel(
         args, 
-        pm_ckpt='./ckpt_bak/dc_0413.pth', 
-        aig_ckpt='./ckpt_bak/dg_0417.pth'
+        pm_ckpt='./ckpt_bak/gat.pth', 
+        aig_ckpt='./ckpt/aig_dg2.pth'
     )
 
     trainer = deepcell.top_trainer.TopTrainer(args, model, distributed=args.distributed, device=args.device)
