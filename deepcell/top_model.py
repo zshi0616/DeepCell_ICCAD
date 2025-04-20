@@ -23,8 +23,8 @@ from .gcn_model import DirectMultiGCNEncoder as GCN
 class TopModel(nn.Module):
     def __init__(self, 
                  args, 
-                 pm_ckpt, 
-                 aig_ckpt
+                 pm_ckpt=None, 
+                 aig_ckpt=None
                 ):
         super(TopModel, self).__init__()
         self.args = args
@@ -32,7 +32,8 @@ class TopModel(nn.Module):
         
         # DeepCell 
         self.pm_encoder = DeepCell(dim_hidden=args.dim_hidden, aggr=self.args.pm_aggr)
-        self.pm_encoder.load(pm_ckpt)
+        if pm_ckpt != None:
+            self.pm_encoder.load(pm_ckpt)
         
         # DeepGate 
         if args.aig_encoder == 'pg':
@@ -43,7 +44,8 @@ class TopModel(nn.Module):
             self.aig_encoder = DeepGate3(dim_hidden=args.dim_hidden)
         elif args.aig_encoder == 'gcn':
             self.aig_encoder = GCN(dim_feature=3, dim_hidden=args.dim_hidden)
-        self.aig_encoder.load(aig_ckpt)
+        if aig_ckpt != None:
+            self.aig_encoder.load(aig_ckpt)
         
         # Transformer
         if self.args.linformer:

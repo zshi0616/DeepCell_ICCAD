@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import torch
 import os
+import copy
 from torch import nn
 from torch.nn import LSTM, GRU
 from .utils.dag_utils import subgraph, custom_backward_subgraph

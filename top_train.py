@@ -32,7 +32,7 @@ if __name__ == '__main__':
     trainer = deepcell.top_trainer.TopTrainer(args, model, distributed=args.distributed, device=args.device)
     if args.resume:
         trainer.resume()
-    trainer.set_training_args(lr=1e-4, lr_step=50, loss_weight=[1, 1])
+    trainer.set_training_args(lr=1e-4, lr_step=50, loss_weight=[1, 5])
     print('[INFO] Stage 1 Training ...')
     trainer.train(num_epochs, train_dataset, val_dataset)
     

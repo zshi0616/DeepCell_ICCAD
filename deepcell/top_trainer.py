@@ -64,10 +64,10 @@ class TopTrainer():
         self.model_epoch = 0
         
         # Logger
+        self.log_dir = os.path.join(args.save_dir, training_id)
         if self.local_rank == 0:
             if not os.path.exists(args.save_dir):
                 os.makedirs(args.save_dir)
-            self.log_dir = os.path.join(args.save_dir, training_id)
             if not os.path.exists(self.log_dir):
                 os.makedirs(self.log_dir)
             self.log_path = os.path.join(self.log_dir, 'log-{}.txt'.format(time_str))
@@ -163,8 +163,10 @@ class TopTrainer():
             val_dataset = DataLoader(val_dataset, batch_size=self.batch_size, shuffle=False, drop_last=True,
                                      num_workers=self.num_workers, sampler=val_sampler)
         else:
-            train_dataset = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True, drop_last=True, num_workers=self.num_workers)
-            val_dataset = DataLoader(val_dataset, batch_size=self.batch_size, shuffle=True, drop_last=True, num_workers=self.num_workers)
+            if train_dataset != None:
+                train_dataset = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True, drop_last=True, num_workers=self.num_workers)
+            if val_dataset != None:
+                val_dataset = DataLoader(val_dataset, batch_size=self.batch_size, shuffle=True, drop_last=True, num_workers=self.num_workers)
         
         # AverageMeter
         batch_time = AverageMeter()
@@ -184,6 +186,8 @@ class TopTrainer():
                     self.model.eval()
                     self.model.to(self.device)
                     torch.cuda.empty_cache()
+                if dataset == None:
+                    continue
                 if self.local_rank == 0:
                     bar = Bar('{} {:}/{:}'.format(phase, epoch, num_epoch), max=len(dataset))
                 
@@ -208,15 +212,15 @@ class TopTrainer():
                         self.optimizer.step()
                     # Print and save log
                     batch_time.update(time.time() - time_stamp)
-                    prob_loss_stats.update(loss_status['prob_loss'].item() * self.loss_weight[0])
-                    mcm_loss_stats.update(loss_status['mcm_loss'].item() * self.loss_weight[1])
+                    prob_loss_stats.update(loss_status['prob_loss'].item())
+                    mcm_loss_stats.update(loss_status['mcm_loss'].item())
                     watch_loss_stats.update(loss_status['watch'].item())
                     if self.local_rank == 0:
                         Bar.suffix = '[{:}/{:}] [{}] |Tot: {total:} |ETA: {eta:} '.format(iter_id, len(dataset), self.args.refine, total=bar.elapsed_td, eta=bar.eta_td)
                         Bar.suffix += '|MCM: {:.4f} |Prob: {:.4f} |Watch: {:.4f} '.format(mcm_loss_stats.avg, prob_loss_stats.avg, watch_loss_stats.avg)
                         Bar.suffix += '|Net: {:.2f}s '.format(batch_time.avg)
                         bar.next()
-                if phase == 'train':
+                if self.local_rank == 0 and phase == 'train':
                     self.save(os.path.join(self.log_dir, 'model_last.pth'))
                     if self.model_epoch % 10 == 0:
                         self.save(os.path.join(self.log_dir, 'model_{:}.pth'.format(self.model_epoch)))

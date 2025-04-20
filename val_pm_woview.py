@@ -10,19 +10,20 @@ from torch import nn
 import time
 
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
-DATA_DIR = './data/lcm_sample'
+DATA_DIR = './data/lcm_test'
 
 if __name__ == '__main__':
     args = get_parse_args()
     num_epochs = args.num_epochs
     
     print('[INFO] Parse Dataset')
-    dataset = deepcell.NpzParser_Pair(args, DATA_DIR, trainval_split=0.9, random_shuffle=False)
+    dataset = deepcell.NpzParser_Pair(args, DATA_DIR, trainval_split=0, random_shuffle=False)
     _, val_dataset = dataset.get_dataset()
     
     print('[INFO] Create Model')
     model = deepcell.Model(aggr=args.pm_aggr).to(args.device)
-    checkpoint = './ckpt/pm_{}.pth'.format(args.pm_aggr)
+    # checkpoint = './ckpt/pm_{}.pth'.format(args.pm_aggr)
+    checkpoint = '/uac/gds/zyshi21/studio/DeepCell_ICCAD/exp/top_pm_gcn_dg2/top_pm_gcn_dg2/model_last.pth'
     model.load(checkpoint)
     model.eval()
     print('[INFO] Load checkpoint from {}'.format(checkpoint))
