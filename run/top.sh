@@ -2,10 +2,10 @@ NUM_PROC=4
 GPUS=0,1,2,3
 MASK=0.01
 HOP=4
-PORT=25889
+PORT=25888
 
 PM=dg2
-AIG=dg3
+AIG=hoga
 REFINE=aig
 
 python3 -m torch.distributed.launch --nproc_per_node=$NUM_PROC --master_port $PORT top_train.py \
@@ -16,5 +16,6 @@ python3 -m torch.distributed.launch --nproc_per_node=$NUM_PROC --master_port $PO
  --linformer \
  --gpus $GPUS \
  --refine $REFINE \
- --pm_aggr $PM --aig_encoder $AIG 
+ --pm_aggr $PM --aig_encoder $AIG \
+ --resume
 

@@ -220,3 +220,36 @@ def generate_hs_init(G, hs, no_dim, aig=False):
             hs[pi_node] = torch.tensor(pi_vec, dtype=torch.float)
     
     return hs
+
+def generate_k_hop_tensor(g, k):
+    n = g.aig_x.size(0)  # Number of nodes
+    max_hops = k*2 + 1
+    x = torch.zeros((n, max_hops, g.aig_x.size(1)))  # Initialize output tensor
+    aig_x = g.aig_x.to('cpu')
+    edge_index = g.aig_edge_index.to('cpu')
+    
+    for i in range(n):
+        current_nodes = [i]
+        tp = 0
+        x[i, tp, :] = aig_x[current_nodes[0]]
+        tp += 1
+        for hop_lev in range(0, k-1):
+            neighbors = []
+            for current_node in current_nodes:
+                neighbor = edge_index[0][edge_index[1] == current_node]
+                neighbors += neighbor.tolist()
+            neighbors = list(set(neighbors))
+            neighbors = torch.tensor(neighbors)
+            if len(neighbors) == 0:
+                continue
+            if tp+len(neighbors) >= max_hops:
+                x[i, tp:tp+len(neighbors), :] = aig_x[neighbors[:max_hops-tp]]
+                break
+            else:
+                x[i, tp:tp+len(neighbors), :] = aig_x[neighbors]
+            tp += len(neighbors)
+            current_nodes = neighbors
+            
+    g.aig_hop_x = x.to(g.aig_x.device)
+    return g
+        

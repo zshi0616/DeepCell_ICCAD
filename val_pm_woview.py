@@ -22,8 +22,7 @@ if __name__ == '__main__':
     
     print('[INFO] Create Model')
     model = deepcell.Model(aggr=args.pm_aggr).to(args.device)
-    # checkpoint = './ckpt/pm_{}.pth'.format(args.pm_aggr)
-    checkpoint = '/uac/gds/zyshi21/studio/DeepCell_ICCAD/exp/top_pm_gcn_dg2/top_pm_gcn_dg2/model_last.pth'
+    checkpoint = './ckpt/pm_{}.pth'.format(args.pm_aggr)
     model.load(checkpoint)
     model.eval()
     print('[INFO] Load checkpoint from {}'.format(checkpoint))

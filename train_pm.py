@@ -8,7 +8,7 @@ import os
 from config import get_parse_args
 
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
-DATA_DIR = './data/lcm_sample'
+DATA_DIR = './data/lcm'
 # checkpoint = './ckpt/pm_dg2.pth'
 
 if __name__ == '__main__':

@@ -12,11 +12,12 @@ from deepcell.dg_trainer import Trainer as DGTrainer
 from deepcell.dg_model import Model as DeepGate
 from deepcell.dg3_model import Model as DeepGate3
 from deepcell.pg_model import PolarGate
+from deepcell.hoga_model import HOGA
 from deepcell.gcn_model import DirectMultiGCNEncoder as GCN
 
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 DATA_DIR = './data/lcm_sample'
-checkpoint = './ckpt/aig_gcn.pth'
+checkpoint = './ckpt/aig_pg.pth'
 
 if __name__ == '__main__':
     args = get_parse_args()
@@ -24,12 +25,15 @@ if __name__ == '__main__':
     print('[INFO] Create Model and Trainer')
     if args.aig_encoder == 'pg':
         model = PolarGate(args, in_dim=3, out_dim=args.dim_hidden)
-    elif args.aig_encoder == 'dg':
+    elif args.aig_encoder == 'dg2':
         model = DeepGate(dim_hidden=args.dim_hidden)
     elif args.aig_encoder == 'dg3':
         model = DeepGate3(dim_hidden=args.dim_hidden)
     elif args.aig_encoder == 'gcn':
         model = GCN(dim_feature=3, dim_hidden=args.dim_hidden)
+    elif args.aig_encoder == 'hoga':
+        model = HOGA(in_channels=3,hidden_channels=args.dim_hidden,out_channels=args.dim_hidden, num_layers=1,
+                        dropout=0.1, num_hops=5+1, heads=8, directed = True, attn_type="mix")
     
     model.load(checkpoint)
     print('[INFO] Parse Dataset')
@@ -40,9 +44,6 @@ if __name__ == '__main__':
     trainer = DGTrainer(args, model, distributed=args.distributed, training_id=args.exp_id, device=args.device)
     if args.resume:
         trainer.resume()
-    # trainer.set_training_args(loss_weight=[1.0, 0.0, 1.0], lr=1e-4, lr_step=80)
-    # print('[INFO] Stage 1 Training ...')
-    # trainer.train(10, train_dataset, val_dataset)
     
     trainer.set_training_args(loss_weight=[1.0, 0.0, 0.0], lr=1e-4, lr_step=20)
     print('[INFO] Stage 1 Training ...')

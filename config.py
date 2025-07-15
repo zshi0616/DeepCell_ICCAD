@@ -22,7 +22,7 @@ def get_parse_args():
     
     # GNN
     parser.add_argument('--pm_aggr', default='dg2', choices=['dg2', 'gat', 'gcn'],)
-    parser.add_argument('--aig_encoder', default='dg2', choices=['dg2', 'pg', 'dg3', 'gcn'])
+    parser.add_argument('--aig_encoder', default='dg2', choices=['dg2', 'pg', 'dg3', 'gcn', 'hoga'])
 
     # system
     parser.add_argument('--gpus', default='-1', 

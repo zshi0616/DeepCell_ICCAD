@@ -18,6 +18,7 @@ from .dc_model import Model as DeepCell
 from .dg_model import Model as DeepGate
 from .dg3_model import Model as DeepGate3
 from .pg_model import PolarGate
+from .hoga_model import HOGA
 from .gcn_model import DirectMultiGCNEncoder as GCN
 
 class TopModel(nn.Module):
@@ -44,6 +45,9 @@ class TopModel(nn.Module):
             self.aig_encoder = DeepGate3(dim_hidden=args.dim_hidden)
         elif args.aig_encoder == 'gcn':
             self.aig_encoder = GCN(dim_feature=3, dim_hidden=args.dim_hidden)
+        elif args.aig_encoder == 'hoga':
+            self.aig_encoder = HOGA(in_channels=3,hidden_channels=args.dim_hidden,out_channels=args.dim_hidden, num_layers=1,
+                        dropout=0.1, num_hops=5+1, heads=8, directed = True, attn_type="mix")
         if aig_ckpt != None:
             self.aig_encoder.load(aig_ckpt)
         
@@ -52,7 +56,7 @@ class TopModel(nn.Module):
             from linformer import Linformer
             self.mask_tf = Linformer(
                 dim = args.dim_hidden * 2, k=args.dim_hidden*2, 
-                heads = args.tf_head, depth = args.tf_layer, seq_len=8192, 
+                heads = args.tf_head, depth = args.tf_layer, seq_len=args.max_token_size * 2, 
                 one_kv_head=True, share_kv=True, 
             )
         else:

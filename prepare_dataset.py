@@ -11,7 +11,7 @@ import deepcell.top_trainer
 from torch_geometric.data import Data
 
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
-DATA_DIR = './data/lcm_sample'
+DATA_DIR = './data/lcm'
 
 class OrderedData(Data):
     def __init__(self): 

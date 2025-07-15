@@ -10,7 +10,7 @@ from progress.bar import Bar
 from torch_geometric.loader import DataLoader
 
 from .arch.mlp import MLP
-from .utils.utils import zero_normalization, AverageMeter, get_function_acc
+from .utils.utils import zero_normalization, AverageMeter, get_function_acc, generate_k_hop_tensor
 from .utils.logger import Logger
 
 class Trainer():
@@ -187,6 +187,23 @@ class Trainer():
         else:
             train_dataset = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True, drop_last=True, num_workers=self.num_workers)
             val_dataset = DataLoader(val_dataset, batch_size=self.batch_size, shuffle=True, drop_last=True, num_workers=self.num_workers)
+        
+        if self.args.aig_encoder == 'hoga':
+            new_train_dataset = []
+            new_val_dataset = []
+            start_time = time.time()
+            for batch_id, batch in enumerate(train_dataset):
+                g = generate_k_hop_tensor(batch, 5)
+                new_train_dataset.append(g)
+                if self.local_rank == 0:
+                    print('Process dataset for HOGA: [{} / {}] ETA: {:.2f}s'.format(
+                        batch_id, len(train_dataset), (time.time() - start_time) / (batch_id + 1) * (len(train_dataset) - batch_id - 1)
+                    ))
+            for batch_id, batch in enumerate(val_dataset):
+                g = generate_k_hop_tensor(batch, 5)
+                new_val_dataset.append(g)
+            train_dataset = new_train_dataset
+            val_dataset = new_val_dataset
         
         # AverageMeter
         batch_time = AverageMeter()
